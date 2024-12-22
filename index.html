@@ -1,0 +1,1377 @@
+<html><head><base href="https://websim.ai/camera-gemini-analysis/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Camera Selector with Gemini Analysis and Object Memory</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 100%;
+            width: 100%;
+            margin: 10px;
+            box-sizing: border-box;
+        }
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .title-rose {
+            height: 1em; /* This will match the height of "Cam" */
+            width: auto;
+            object-fit: contain;
+        }
+        #cameraFeed {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #333;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        button {
+            min-height: 44px; 
+            min-width: 44px;
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #cameraSelect, #apiKeyInput, #languageSelect {
+            -webkit-appearance: none;
+            font-size: 16px; 
+            padding: 12px;
+            margin: 8px 0;
+        }
+        #analysisResult, #objectMemory {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+            font-style: italic;
+        }
+        #objectMemory {
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .memory-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .memory-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+        .memory-note {
+            flex: 1;
+            padding: 5px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .captured-photo {
+            width: 100%;
+            max-width: 200px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .clear-item-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 12px;
+            min-height: 44px;
+            min-width: 44px;
+        }
+        .clear-item-button:hover {
+            background-color: #c82333;
+        }
+        .edit-button {
+            background-color: #ffc107;
+            color: black;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+            min-height: 44px;
+            min-width: 44px;
+        }
+        .edit-button:hover {
+            background-color: #e0a800;
+        }
+        .mic-button, .camera-button {
+            min-height: 44px;
+            min-width: 44px;
+            padding: 8px 16px;
+        }
+        .mic-button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .mic-button:hover {
+            background-color: #357abd;
+        }
+        .mic-button.recording {
+            background-color: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .edit-dialog {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .add-object-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .add-object-button:hover {
+            background-color: #45a049;
+        }
+        .camera-button {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .camera-button:hover {
+            background-color: #138496;
+        }
+        .delete-photo-button {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px; 
+            min-height: 44px;
+            min-width: 44px;
+        }
+        .delete-photo-button:hover {
+            background-color: #cc0000;
+        }
+        .photo-container {
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .upload-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-size: 14px;
+            display: inline-block; 
+        }
+        .upload-button:hover {
+            background-color: #0056b3;
+        }
+        #fileInput {
+          display: none;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .save-config-button {
+            background-color: #007bff;
+            margin: 15px 0;
+            width: auto;
+        }
+        .custom-object-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 100%;
+        }
+        #customObjectInput {
+            flex: 1;
+            width: 100%;
+            max-width: 100%;
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-container">
+            <img src="/a/bf8c50d1-fef0-4f67-80c8-d536201a1eda" alt="A vibrant red rose with detailed petals" class="title-rose">
+            <h1>Camera Selector with Gemini Analysis and Object Memory</h1>
+        </div>
+        <button id="saveConfigButtonTop" class="save-config-button">Save Configuration to File</button>
+        <input type="text" id="apiKeyInput" placeholder="Enter your Gemini API key">
+        <select id="cameraSelect">
+            <option value="">Loading cameras...</option>
+        </select>
+        <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Português</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="zh-CN">中文（简体）</option>
+            <option value="zh-TW">中文（繁體）</option>
+        </select>
+        <br>
+        <video id="cameraFeed" autoplay playsinline></video>
+        <br>
+        <button id="captureButton">Capture Photo and Analyze</button>
+        <div class="spinner" id="spinner"></div>
+        <div id="analysisResult"></div>
+        <h2>Remembered Objects</h2>
+        <div class="custom-object-container">
+            <input type="text" id="customObjectInput" placeholder="Type a custom object to remember...">
+            <button class="mic-button" id="customObjectMic">🎤</button>
+            <button id="addObjectButton" class="add-object-button">Add Object</button>
+        </div>
+        <div id="objectMemory"></div>
+        <button id="saveConfigButtonBottom" class="save-config-button">Save Configuration to File</button>
+        <input type="file" id="fileInput" accept=".json" style="display: none;">
+        <button id="uploadConfigButton" class="upload-button">Upload Configuration from File</button>
+        <div id="uploadMessage" style="display:none; margin-top: 10px; font-style: italic; color: green;">Finished Uploading</div>
+    </div>
+
+    <script>
+        const cameraFeed = document.getElementById('cameraFeed');
+        const captureButton = document.getElementById('captureButton');
+        const cameraSelect = document.getElementById('cameraSelect');
+        const analysisResult = document.getElementById('analysisResult');
+        const objectMemory = document.getElementById('objectMemory');
+        const spinner = document.getElementById('spinner');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const languageSelect = document.getElementById('languageSelect');
+        const uploadMessage = document.getElementById('uploadMessage');
+
+        let currentStream;
+        let capturedImage;
+        let rememberedObjects = JSON.parse(localStorage.getItem('rememberedObjects') || '[]')
+            .map(obj => typeof obj === 'string' ? {text: obj, note: '', lang: 'en'} : obj);
+
+        const objectTranslations = {
+            "keyboard": {
+                en: "keyboard",
+                es: "teclado",
+                fr: "clavier",
+                de: "Tastatur",
+                it: "tastiera",
+                pt: "teclado",
+                ja: "キーボード",
+                ko: "키보드",
+                "zh-CN": "键盘",
+                "zh-TW": "鍵盤"
+            },
+            "mouse": {
+                en: "mouse",
+                es: "ratón",
+                fr: "souris",
+                de: "Maus",
+                it: "mouse",
+                pt: "mouse",
+                ja: "マウス",
+                ko: "마우스",
+                "zh-CN": "鼠标",
+                "zh-TW": "滑鼠"
+            },
+        };
+
+        const translations = {
+            en: {
+                title: "Camera Selector with Gemini Analysis and Object Memory",
+                apiKeyPlaceholder: "Enter your Gemini API key",
+                captureButton: "Capture Photo and Analyze",
+                rememberedObjects: "Remembered Objects",
+                analyzing: "Capturing photo and analyzing...",
+                apiKeyError: "Please enter your Gemini API key.",
+                cameraError: "Unable to access the selected camera. Please try another or check your permissions.",
+                initError: "Unable to access any camera. Please check your device and permissions.",
+                saveConfigButton: "Save Configuration to File",
+                deleteConfirm: "Are you sure you want to delete this item?",
+                editPrompt: "Edit object:",
+                customObjectPlaceholder: "Type a custom object to remember...",
+                addCustomObject: "Add Object",
+                microphoneNotSupported: "Speech recognition is not supported in this browser.",
+                objectAdded: 'Object added successfully!',
+                deletePhotoConfirm: "Are you sure you want to delete this photo?",
+                uploadConfigButton: "Upload Configuration from File",
+                uploadInstruction: "Please upload a JSON file containing your object configurations.",
+                uploadFinished: "Finished Uploading"
+            },
+            es: {
+                title: "Selector de Cámara con Análisis Gemini y Memoria de Objetos",
+                apiKeyPlaceholder: "Ingrese su clave API de Gemini",
+                captureButton: "Capturar Foto y Analizar",
+                rememberedObjects: "Objetos Recordados",
+                analyzing: "Capturando foto y analizando...",
+                apiKeyError: "Por favor ingrese su clave API de Gemini.",
+                cameraError: "No se puede acceder a la cámara seleccionada. Intente con otra o verifique sus permisos.",
+                initError: "No se puede acceder a ninguna cámara. Verifique su dispositivo y permisos.",
+                saveConfigButton: "Guardar Configuración en Archivo",
+                deleteConfirm: "¿Está seguro de que desea eliminar este elemento?",
+                editPrompt: "Editar objeto:",
+                customObjectPlaceholder: "Escriba un objeto personalizado para recordar...",
+                addCustomObject: "Agregar Objeto",
+                microphoneNotSupported: "El reconocimiento de voz no está soportado en este navegador.",
+                objectAdded: '¡Objeto agregado exitosamente!',
+                deletePhotoConfirm: "¿Está seguro de que desea eliminar esta foto?",
+                uploadConfigButton: "Cargar Configuración desde Archivo",
+                uploadInstruction: "Por favor carga un archivo JSON que contenga tus configuraciones de objetos.",
+                uploadFinished: "Carga Finalizada"
+            },
+            fr: {
+                title: "Sélecteur de Caméra avec Analyse Gemini et Mémoire d'Objets",
+                apiKeyPlaceholder: "Entrez votre clé API Gemini",
+                captureButton: "Capturer et Analyser la Photo",
+                rememberedObjects: "Objets Mémorisés",
+                analyzing: "Capture et analyse de la photo...",
+                apiKeyError: "Veuillez entrer votre clé API Gemini.",
+                cameraError: "Impossible d'accéder à la caméra sélectionnée. Veuillez en essayer une autre ou vérifier vos permissions.",
+                initError: "Impossible d'accéder à une caméra. Veuillez vérifier votre appareil et vos permissions.",
+                saveConfigButton: "Enregistrer la Configuration",
+                deleteConfirm: "Êtes-vous sûr de vouloir supprimer cet élément?",
+                editPrompt: "Modifier l'objet:",
+                customObjectPlaceholder: "Tapez un objet personnalisé à mémoriser...",
+                addCustomObject: "Ajouter l'Objet",
+                microphoneNotSupported: "La reconnaissance vocale n'est pas prise en charge dans ce navigateur.",
+                objectAdded: 'Objet ajouté avec succès!',
+                deletePhotoConfirm: "Êtes-vous sûr de vouloir supprimer cette photo?",
+                uploadConfigButton: "Télécharger la Configuration depuis un Fichier",
+                uploadInstruction: "Veuillez télécharger un fichier JSON contenant vos configurations d'objets.",
+                uploadFinished: "Téléchargement Terminé"
+            },
+            'zh-TW': {
+                title: "Gemini 分析相機選擇器 和 物體記憶",
+                apiKeyPlaceholder: "請輸入您的 Gemini API 金鑰",
+                captureButton: "拍攝照片並分析",
+                rememberedObjects: "記住的物件",
+                analyzing: "正在拍攝照片並分析...",
+                apiKeyError: "請輸入您的 Gemini API 金鑰。",
+                cameraError: "無法存取所選相機。請嘗試其他相機或檢查您的權限。",
+                initError: "無法存取任何相機。請檢查您的設備和權限。",
+                saveConfigButton: "儲存設定檔案",
+                deleteConfirm: "您確定要刪除這個項目嗎？",
+                editPrompt: "編輯物件：",
+                customObjectPlaceholder: "輸入要記住的自定義物件...",
+                addCustomObject: "新增物件",
+                microphoneNotSupported: "此瀏覽器不支援語音辨識。",
+                objectAdded: '物件新增成功！',
+                deletePhotoConfirm: "您確定要刪除這張照片嗎？",
+                uploadConfigButton: "從文件上傳配置",
+                uploadInstruction: "請上傳一個包含您的對象配置的 JSON 文件。",
+                uploadFinished: "上傳完成"
+            }
+        };
+
+        function filterObjects(searchText) {
+            const normalizedSearch = searchText.toLowerCase();
+            const filteredObjects = rememberedObjects.filter(obj => {
+                const objectText = obj.text.toLowerCase();
+                return objectText.includes(normalizedSearch);
+            });
+
+            // Update display with filtered objects
+            objectMemory.innerHTML = filteredObjects.map((obj, index) => {
+                const displayText = obj.text;
+                return `
+                    <div class="memory-item">
+                        <div class="memory-controls">
+                            <p>${displayText}</p>
+                            <input type="text" 
+                                class="memory-note" 
+                                placeholder="Add a note..." 
+                                value="${obj.note}"
+                                id="note-${index}">
+                            <button class="mic-button" id="mic-${index}">🎤</button>
+                            <button class="camera-button" onclick="captureObjectPhoto(${index})">📷</button>
+                            <button class="edit-button" onclick="editMemory(${index})">✎</button>
+                            <button class="clear-item-button" onclick="clearSingleMemory(${index})">✕</button>
+                        </div>
+                        ${obj.image ? `
+                            <div class="photo-container">
+                                <img src="${obj.image}" class="captured-photo" alt="Captured photo">
+                                <button class="delete-photo-button" onclick="deleteObjectPhoto(${index})">🗑️ Delete photo</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Reattach event listeners for the filtered items
+            filteredObjects.forEach((_, index) => {
+                const noteInput = document.getElementById(`note-${index}`);
+                if (noteInput) {
+                    noteInput.addEventListener('input', () => {
+                        updateNote(index, noteInput.value);
+                    });
+                }
+                setupSpeechRecognition(index);
+            });
+        }
+
+        function editMemory(index) {
+            const item = rememberedObjects[index];
+            const editDialog = document.createElement('div');
+            editDialog.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.2);
+                z-index: 1001;
+                width: 90%;
+                max-width: 400px;
+            `;
+            
+            editDialog.innerHTML = `
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" value="${item.text}" 
+                        style="padding: 12px; border: 1px solid #ddd; border-radius: 4px; flex-grow: 1; font-size: 16px;">
+                    <button class="mic-button" id="edit-mic" style="min-height: 44px; min-width: 44px;">🎤</button>
+                </div>
+                <div style="margin-top: 15px; text-align: right;">
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                        style="padding: 12px 24px; margin-right: 10px; background: #dc3545; color: white; border: none; border-radius: 4px; min-height: 44px;">
+                        Cancel
+                    </button>
+                    <button onclick="saveEdit(${index}, this.parentElement.parentElement)" 
+                        style="padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 4px; min-height: 44px;">
+                        Save
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(editDialog);
+
+            // Setup speech recognition for editing
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = languageSelect.value;
+
+            const micButton = editDialog.querySelector('#edit-mic');
+            const inputField = editDialog.querySelector('input');
+            let isRecording = false;
+
+            micButton.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micButton.classList.add('recording');
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micButton.classList.remove('recording');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                inputField.value = transcript;
+            };
+
+            // Add backdrop overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1000;
+            `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', () => {
+                overlay.remove();
+                editDialog.remove();
+            });
+
+            // Focus the input field
+            inputField.focus();
+            inputField.select();
+        }
+
+        function saveEdit(index, dialog) {
+            const newText = dialog.querySelector('input').value.trim();
+            if (newText !== '') {
+                rememberedObjects[index].text = newText;
+                localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+                updateObjectMemory();
+            }
+            dialog.remove();
+            document.querySelector('div[style*="background: rgba(0,0,0,0.5)"]')?.remove();
+        }
+
+        function setupSpeechRecognition(index) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert(translations[languageSelect.value].microphoneNotSupported);
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = languageSelect.value;
+
+            const micButton = document.getElementById(`mic-${index}`);
+            let isRecording = false;
+            
+            recognition.onstart = () => {
+                isRecording = true;
+                micButton.classList.add('recording');
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micButton.classList.remove('recording');
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                micButton.classList.remove('recording');
+                console.error('Speech recognition error:', event.error);
+            };
+
+            recognition.onresult = (event) => {
+                const note = event.results[0][0].transcript;
+                const noteInput = document.getElementById(`note-${index}`);
+                noteInput.value = note;
+                updateNote(index, note);
+            };
+
+            micButton.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    document.querySelectorAll('.mic-button').forEach(button => {
+                        if (button.classList.contains('recording')) {
+                            button.classList.remove('recording');
+                        }
+                    });
+                    try {
+                        recognition.start();
+                    } catch (error) {
+                        console.error('Recognition start error:', error);
+                        isRecording = false;
+                        micButton.classList.remove('recording');
+                    }
+                }
+            });
+
+            return recognition;
+        }
+
+        function setupCustomObjectSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert(translations[languageSelect.value].microphoneNotSupported);
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = languageSelect.value;
+
+            const micButton = document.getElementById('customObjectMic');
+            const customInput = document.getElementById('customObjectInput');
+            let isRecording = false;
+            
+            recognition.onstart = () => {
+                isRecording = true;
+                micButton.classList.add('recording');
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micButton.classList.remove('recording');
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                micButton.classList.remove('recording');
+                console.error('Speech recognition error:', event.error);
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                customInput.value = transcript;
+                filterObjects(transcript);
+            };
+
+            micButton.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    document.querySelectorAll('.mic-button').forEach(button => {
+                        if (button.classList.contains('recording')) {
+                            button.classList.remove('recording');
+                        }
+                    });
+                    try {
+                        recognition.start();
+                    } catch (error) {
+                        console.error('Recognition start error:', error);
+                        isRecording = false;
+                        micButton.classList.remove('recording');
+                    }
+                }
+            });
+        }
+
+        function updateObjectMemory() {
+            const currentLang = languageSelect.value;
+            const texts = translations[currentLang] || translations.en;
+            objectMemory.innerHTML = rememberedObjects.map((obj, index) => {
+                let displayText = obj.text;
+
+                if (objectTranslations[obj.text.toLowerCase()]) {
+                    displayText = objectTranslations[obj.text.toLowerCase()][currentLang] || obj.text;
+                } else {
+                    const words = obj.text.toLowerCase().split(' ');
+                    const translatedWords = words.map(word => {
+                        if (objectTranslations[word]) {
+                            return objectTranslations[word][currentLang] || word;
+                        }
+                        return word;
+                    });
+                    displayText = translatedWords.join(' ');
+                }
+
+                return `
+                    <div class="memory-item">
+                        <div class="memory-controls">
+                            <p>${displayText}</p>
+                            <input type="text" 
+                                class="memory-note" 
+                                placeholder="Add a note..." 
+                                value="${obj.note}"
+                                id="note-${index}">
+                            <button class="mic-button" id="mic-${index}">🎤</button>
+                            <button class="camera-button" onclick="captureObjectPhoto(${index})">📷</button>
+                            <button class="edit-button" onclick="editMemory(${index})">✎</button>
+                            <button class="clear-item-button" onclick="clearSingleMemory(${index})">✕</button>
+                        </div>
+                        ${obj.image ? `
+                            <div class="photo-container">
+                                <img src="${obj.image}" class="captured-photo" alt="Captured photo">
+                                <button class="delete-photo-button" onclick="deleteObjectPhoto(${index})">🗑️ Delete photo</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            rememberedObjects.forEach((_, index) => {
+                const noteInput = document.getElementById(`note-${index}`);
+                
+                if (noteInput) {
+                    noteInput.addEventListener('input', () => {
+                        updateNote(index, noteInput.value);
+                    });
+                }
+
+                setupSpeechRecognition(index);
+            });
+        }
+
+        async function captureObjectPhoto(index) {
+            const item = rememberedObjects[index];
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            `;
+
+            const videoElement = document.createElement('video');
+            videoElement.style.cssText = `
+                width: 100%;
+                max-width: 400px;
+                margin-bottom: 20px;
+            `;
+            videoElement.autoplay = true;
+            videoElement.playsinline = true;
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.cssText = `
+                display: flex;
+                gap: 10px;
+            `;
+
+            const captureBtn = document.createElement('button');
+            captureBtn.textContent = '📸 Capture';
+            captureBtn.style.cssText = `
+                padding: 10px 20px;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            `;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '✕ Close';
+            closeBtn.style.cssText = `
+                padding: 10px 20px;
+                background: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            `;
+
+            buttonContainer.appendChild(captureBtn);
+            buttonContainer.appendChild(closeBtn);
+            modal.appendChild(videoElement);
+            modal.appendChild(buttonContainer);
+            document.body.appendChild(modal);
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+
+                closeBtn.onclick = () => {
+                    stream.getTracks().forEach(track => track.stop());
+                    modal.remove();
+                };
+
+                captureBtn.onclick = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = videoElement.videoWidth;
+                    canvas.height = videoElement.videoHeight;
+                    canvas.getContext('2d').drawImage(videoElement, 0, 0);
+
+                    rememberedObjects[index].image = canvas.toDataURL('image/jpeg');
+                    localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+
+                    // Update the display immediately
+                    updateObjectMemory();
+
+                    stream.getTracks().forEach(track => track.stop());
+                    modal.remove();
+
+                    const successMsg = document.createElement('div');
+                    successMsg.textContent = 'Photo captured successfully!';
+                    successMsg.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: #4CAF50;
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        z-index: 1001;
+                    `;
+                    document.body.appendChild(successMsg);
+                    setTimeout(() => successMsg.remove(), 2000);
+                };
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                modal.innerHTML = `
+                    <div style="color: white; padding: 20px; text-align: center;">
+                        Error accessing camera. Please check your permissions.
+                        <br><br>
+                        <button onclick="this.parentElement.parentElement.remove()" 
+                            style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function clearSingleMemory(index) {
+            const lang = languageSelect.value;
+            const texts = translations[lang] || translations.en;
+            if (confirm(texts.deleteConfirm)) {
+                rememberedObjects.splice(index, 1);
+                localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+                updateObjectMemory();
+            }
+        }
+
+        function deleteObjectPhoto(index) {
+            const lang = languageSelect.value;
+            const texts = translations[lang] || translations.en;
+            
+            if (confirm(texts.deletePhotoConfirm)) {
+                rememberedObjects[index].image = null;
+                localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+                updateObjectMemory();
+            }
+        }
+
+        function updateNote(index, note) {
+            rememberedObjects[index].note = note;
+            localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+        }
+
+        function updateLanguage(lang) {
+            const texts = translations[lang] || translations.en;
+            document.querySelector('h1').textContent = texts.title;
+            apiKeyInput.placeholder = texts.apiKeyPlaceholder;
+            captureButton.textContent = texts.captureButton;
+            document.querySelector('h2').textContent = texts.rememberedObjects;
+            document.getElementById('saveConfigButtonTop').textContent = texts.saveConfigButton;
+            document.getElementById('saveConfigButtonBottom').textContent = texts.saveConfigButton;
+            document.getElementById('customObjectInput').placeholder = texts.customObjectPlaceholder;
+            document.getElementById('uploadConfigButton').textContent = texts.uploadConfigButton;
+            uploadMessage.textContent = texts.uploadFinished;
+        }
+
+        async function populateCameraList() {
+            try {
+                // First try to get camera permission
+                await navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        // Stop the test stream immediately
+                        stream.getTracks().forEach(track => track.stop());
+                    });
+
+                // Then enumerate devices
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                if (videoDevices.length === 0) {
+                    throw new Error('No cameras found');
+                }
+                
+                cameraSelect.innerHTML = videoDevices.map(device => {
+                    const label = device.label || 
+                        (device.deviceId.includes('back') || device.label.includes('back') ? 
+                        'Back Camera' : 'Front Camera');
+                    return `<option value="${device.deviceId}">${label}</option>`;
+                }).join('');
+                
+                // On mobile, prioritize back camera
+                const backCamera = videoDevices.find(device => 
+                    device.label.toLowerCase().includes('back') || 
+                    device.deviceId.includes('back')
+                );
+                
+                if (backCamera) {
+                    cameraSelect.value = backCamera.deviceId;
+                }
+                
+                // Start camera with selected device
+                await startCamera(cameraSelect.value);
+                
+            } catch (err) {
+                console.error('Camera initialization error:', err);
+                
+                // Show a more user-friendly error message on screen
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(255, 255, 255, 0.9);
+                    padding: 20px;
+                    border-radius: 10px;
+                    text-align: center;
+                    z-index: 1000;
+                    max-width: 80%;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+                `;
+                
+                errorDiv.innerHTML = `
+                    <h3 style="color: #dc3545; margin-bottom: 15px;">Camera Access Required</h3>
+                    <p style="margin-bottom: 15px;">To use this app, please:</p>
+                    <ol style="text-align: left; margin-bottom: 15px;">
+                        <li>Click the camera icon in your address bar</li>
+                        <li>Select "Allow" for camera access</li>
+                        <li>Reload the page</li>
+                    </ol>
+                    <button onclick="location.reload()" style="
+                        background: #4CAF50;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                    ">Reload Page</button>
+                `;
+                
+                document.body.appendChild(errorDiv);
+            }
+        }
+
+        async function startCamera(deviceId) {
+            const lang = languageSelect.value;
+            const texts = translations[lang] || translations.en;
+            
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            
+            try {
+                const constraints = {
+                    video: {
+                        deviceId: deviceId ? {exact: deviceId} : undefined,
+                        facingMode: deviceId ? undefined : "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+                
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraFeed.srcObject = stream;
+                currentStream = stream;
+                
+                // Handle screen orientation changes
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(() => {
+                        const track = stream.getVideoTracks()[0];
+                        const capabilities = track.getCapabilities();
+                        if (capabilities.width && capabilities.height) {
+                            track.applyConstraints({
+                                width: { ideal: window.innerWidth },
+                                height: { ideal: window.innerHeight }
+                            });
+                        }
+                    }, 200);
+                });
+                
+                // Ensure video is playing
+                await cameraFeed.play().catch(error => {
+                    console.log('Video play error:', error);
+                });
+                
+            } catch (err) {
+                console.error("Camera access error:", err);
+                const errorMessage = document.createElement('div');
+                errorMessage.style.cssText = `
+                    background: #f8d7da;
+                    color: #721c24;
+                    padding: 10px;
+                    margin: 10px 0;
+                    border-radius: 5px;
+                    text-align: center;
+                `;
+                errorMessage.textContent = texts.cameraError;
+                cameraFeed.parentNode.insertBefore(errorMessage, cameraFeed.nextSibling);
+            }
+        }
+
+        async function captureAndAnalyze() {
+            const lang = languageSelect.value;
+            const texts = translations[lang] || translations.en;
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                alert(texts.apiKeyError);
+                return;
+            }
+
+            captureButton.disabled = true;
+            spinner.style.display = 'block';
+            analysisResult.textContent = texts.analyzing;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraFeed.videoWidth;
+            canvas.height = cameraFeed.videoHeight;
+            canvas.getContext('2d').drawImage(cameraFeed, 0, 0);
+            capturedImage = canvas.toDataURL('image/jpeg').split(',')[1];
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                {text: `Analyze this image and describe what you see in ${languageSelect.options[languageSelect.selectedIndex].text}. Focus on identifying the main object or subject and provide a brief description. Do not describe or mention any humans, body parts, or living things. Do not mention location or positioning information.`},
+                                {
+                                    inline_data: {
+                                        mime_type: "image/jpeg",
+                                        data: capturedImage
+                                    }
+                                }
+                            ]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                const result = data.candidates[0].content.parts[0].text;
+                analysisResult.textContent = result;
+
+                let mainObject = '';
+                const objectDescription = result.split('.')[0];
+
+                const matches = objectDescription.match(/(?:is |contains |shows )?(?:an? |the )?([a-zA-Z\s,]+(?:and|&)?[a-zA-Z\s,]+(?:computer mouse|keyboard|fan|chair|desk|table|lamp|computer|monitor|phone|cup|mug|book|pen|pencil|notebook|paper|box|container|bottle|glass|plate|bowl|vase|clock|watch|remote|speaker|camera|printer|scanner|router|cable|wire|cord|adapter|charger|battery|light|lamp|bulb|switch|outlet|socket|plug|cable|wire|cord|shirt|pants|dress|jacket|coat|sweater|hoodie|t-shirt|jeans|shorts|skirt|blouse|suit|tie|scarf|hat|cap|shoes|boots|sneakers|socks|gloves))\b/i);
+
+                const compoundObjects = {
+                    'computer mouse': 'computer mouse',
+                    'desk lamp': 'desk lamp',
+                    'office chair': 'office chair',
+                    'coffee mug': 'coffee mug',
+                    'water bottle': 'water bottle',
+                    'desk fan': 'desk fan',
+                    'notebook': 'notebook',
+                    'smartphone': 'smartphone'
+                };
+
+                if (matches) {
+                    mainObject = matches[1].trim()
+                        .replace(/^(an?|the)\s+/i, '')
+                        .replace(/\s+(on|in|at|by|near|above|below|beside|behind|under|over|around)\s+.*$/i, '')
+                        .replace(/\s+located.*$/i, '')
+                        .trim();
+
+                    for (const [compound, replacement] of Object.entries(compoundObjects)) {
+                        if (mainObject.toLowerCase().includes(compound)) {
+                            mainObject = replacement;
+                            break;
+                        }
+                    }
+                }
+
+                const parts = mainObject.split(' ');
+                if (parts.length > 1) {
+                    mainObject = parts.filter(word => 
+                        !['on', 'in', 'at', 'by', 'near', 'above', 'below', 'beside', 'behind', 'under', 'over', 'around'].includes(word.toLowerCase())
+                    ).join(' ');
+                }
+
+                const excludedTerms = [
+                    'human', 'person', 'man', 'woman', 'child', 'baby',
+                    'arm', 'leg', 'hand', 'foot', 'head', 'eye', 'ear', 'nose', 'mouth', 'finger', 'toe',
+                    'hair', 'face', 'body', 'skin',
+                    'animal', 'plant', 'tree', 'flower', 'dog', 'cat', 'bird', 'fish', 'insect'
+                ];
+                
+                const shouldRemember = !excludedTerms.some(term => 
+                    mainObject.toLowerCase().includes(term.toLowerCase())
+                );
+                
+                if (shouldRemember) {
+                    let translatedObject = mainObject;
+                    if (objectTranslations[mainObject.toLowerCase()]) {
+                        translatedObject = objectTranslations[mainObject.toLowerCase()][languageSelect.value] || mainObject;
+                    } else {
+                        const words = mainObject.toLowerCase().split(' ');
+                        const translatedWords = words.map(word => {
+                            if (objectTranslations[word]) {
+                                return objectTranslations[word][languageSelect.value] || word;
+                            }
+                            return word;
+                        });
+                        translatedObject = translatedWords.join(' ');
+                    }
+
+                    rememberedObjects.unshift({
+                        text: translatedObject,
+                        note: '',
+                        lang: languageSelect.value
+                    });
+                    if (rememberedObjects.length > 5) {
+                        rememberedObjects.pop();
+                    }
+                    localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+                    updateObjectMemory();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                analysisResult.textContent = "Error analyzing the image. Please check your API key and try again.";
+            } finally {
+                captureButton.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        function saveConfigurationToFile() {
+            const jsonData = {
+                timestamp: new Date().toISOString(),
+                objects: rememberedObjects
+            };
+            
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'camera-selector-objects.json';
+            
+            alert(
+                "Instructions to save the file:\n\n" +
+                "1. A file download will begin\n" +
+                "2. If you don't have one already, create a folder named 'Camera Selector with Gemini Analysis' in your C: drive\n" +
+                "3. Save the file to C:\\Camera Selector with Gemini Analysis\\"
+            );
+            
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function uploadConfigurationFromFile() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadButton = document.getElementById('uploadConfigButton');
+            const uploadMessage = document.getElementById('uploadMessage');
+
+            // Remove any existing event listeners to prevent duplicates
+            fileInput.removeEventListener('change', handleFileUpload);
+            uploadButton.removeEventListener('click', triggerFileInput);
+
+            // Define the file upload handler
+            function handleFileUpload(event) {
+                if (event.target.files && event.target.files[0]) {
+                    const file = event.target.files[0];
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (data && data.objects) {
+                                // Clear existing remembered objects
+                                rememberedObjects = [];
+                                localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+                                updateObjectMemory(); // Update display to show empty state
+                                
+                                // Load new objects from file
+                                rememberedObjects = data.objects;
+                                localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+                                updateObjectMemory(); // Update display with new objects
+                                
+                                // Show upload success message
+                                uploadMessage.style.display = 'block';
+                                setTimeout(() => {
+                                    uploadMessage.style.display = 'none';
+                                }, 2000);
+                            } else {
+                                console.error('Invalid JSON format');
+                                alert('Invalid file format. Please upload a valid configuration file.');
+                            }
+                        } catch (error) {
+                            console.error('Error parsing JSON:', error);
+                            alert('Error reading file. Please make sure it\'s a valid JSON configuration file.');
+                        }
+                    };
+
+                    reader.onerror = function(error) {
+                        console.error('Error reading file:', error);
+                        alert('Error reading file. Please try again.');
+                    };
+
+                    reader.readAsText(file);
+                    
+                    // Reset the file input to allow the same file to be selected again
+                    fileInput.value = '';
+                }
+            }
+
+            // Define the click handler for the upload button
+            function triggerFileInput() {
+                fileInput.click();
+            }
+
+            // Add the event listeners
+            fileInput.addEventListener('change', handleFileUpload);
+            uploadButton.addEventListener('click', triggerFileInput);
+        }
+
+        // Update the DOMContentLoaded event listener to initialize the upload functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCustomObjectSpeechRecognition();
+            uploadConfigurationFromFile(); // Initialize file upload handler
+        });
+
+        captureButton.addEventListener('click', captureAndAnalyze);
+        document.getElementById('saveConfigButtonTop').addEventListener('click', saveConfigurationToFile);
+        document.getElementById('saveConfigButtonBottom').addEventListener('click', saveConfigurationToFile);
+
+        cameraSelect.addEventListener('change', (event) => {
+            startCamera(event.target.value);
+        });
+
+        languageSelect.addEventListener('change', (event) => {
+            updateLanguage(event.target.value);
+            updateObjectMemory();
+        });
+
+        document.getElementById('addObjectButton').addEventListener('click', () => {
+            const customInput = document.getElementById('customObjectInput');
+            let customText = customInput.value.trim();
+            
+            if (!customText) {
+                alert('Please enter an object name first');
+                return;
+            }
+
+            if (objectTranslations[customText.toLowerCase()]) {
+                customText = objectTranslations[customText.toLowerCase()][languageSelect.value] || customText;
+            } else {
+                const words = customText.toLowerCase().split(' ');
+                const translatedWords = words.map(word => {
+                    if (objectTranslations[word]) {
+                        return objectTranslations[word][languageSelect.value] || word;
+                    }
+                    return word;
+                });
+                customText = translatedWords.join(' ');
+            }
+            
+            rememberedObjects.unshift({
+                text: customText,
+                note: '',
+                lang: languageSelect.value
+            });
+            
+            if (rememberedObjects.length > 5) {
+                rememberedObjects.pop();
+            }
+            
+            localStorage.setItem('rememberedObjects', JSON.stringify(rememberedObjects));
+            updateObjectMemory();
+            
+            customInput.value = '';
+            
+            const successMessage = document.createElement('div');
+            successMessage.textContent = translations[languageSelect.value].objectAdded || 'Object added successfully!';
+            successMessage.style.cssText = `
+                color: green;
+                margin-top: 5px;
+                font-size: 14px;
+            `;
+            customInput.parentElement.appendChild(successMessage);
+            setTimeout(() => successMessage.remove(), 2000);
+        });
+
+        document.getElementById('customObjectInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('addObjectButton').click();
+            }
+        });
+
+        document.getElementById('customObjectInput').addEventListener('input', (e) => {
+            const searchText = e.target.value.trim();
+            if (searchText) {
+                filterObjects(searchText);
+            } else {
+                updateObjectMemory();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCustomObjectSpeechRecognition();
+            uploadConfigurationFromFile(); // Initialize file upload handler
+        });
+
+        populateCameraList().catch(err => {
+            console.error('Initial camera setup failed:', err);
+        });
+
+        updateLanguage('en');
+        updateObjectMemory();
+    </script>
+</body></html>
